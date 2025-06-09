@@ -6,6 +6,7 @@ import numpy as np
 from database import get_db_connection
 
 IMAGES_FOLDER = "/app/images_search"
+THRESHOLD = 0.65
 
 model = insightface.app.FaceAnalysis(name="buffalo_l")
 model.prepare(ctx_id=-1)
@@ -44,12 +45,13 @@ def find_most_similar_faces(embedding):
         try:
             db_embedding = json.loads(row["embedding"])
             score = cosine_similarity(embedding, db_embedding)
-            scored_results.append({
-                "matched_images_name": row["images_name"],
-                "matched_images_id": row["images_id"],
-                "images_preview_name":row["images_preview_name"],
-                "similarity": round(score, 4)
-            })
+            if score >= THRESHOLD:
+                scored_results.append({
+                    "matched_images_name": row["images_name"],
+                    "matched_images_id": row["images_id"],
+                    "images_preview_name": row["images_preview_name"],
+                    "similarity": round(score, 4)
+                })
         except Exception as e:
             print(f"⚠️ Error comparing embedding: {e}")
 
