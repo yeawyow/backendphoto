@@ -14,10 +14,10 @@ face_search_channel = None
 
 class ImageRequest(BaseModel):
     filename: str
-    events_sub_id: int
 
 class SearchRequest(BaseModel):
     images_name: str
+    events_sub_id: int
 rabbit_conn = None
 image_channel = None
 face_search_channel = None
