@@ -31,7 +31,7 @@ def find_most_similar_faces(embedding):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
-        SELECT fe.embedding, i.images_name,i.images_preview_name, fe.images_id
+        SELECT fe.embedding, i.images_name,i.images_preview_name,fe.images_id
         FROM face_embeddings fe
         JOIN images i ON fe.images_id = i.images_id
     """)
@@ -47,6 +47,7 @@ def find_most_similar_faces(embedding):
             scored_results.append({
                 "matched_images_name": row["images_name"],
                 "matched_images_id": row["images_id"],
+                "images_preview_name":row["images_preview_name"],
                 "similarity": round(score, 4)
             })
         except Exception as e:
