@@ -111,10 +111,11 @@ async def process_image_api(request: ImageRequest):
 #         "status": "queued",
 #         "images_name": req.images_name
 #     })
-    @router.post("/face-search")
+@app.post("/face-search")
 async def face_search(req: SearchRequest):
     result = perform_face_search(req.images_name)
     return JSONResponse(content={
         "status": "completed",
         "result": result
     })
+
