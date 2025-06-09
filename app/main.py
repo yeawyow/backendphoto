@@ -16,7 +16,6 @@ class ImageRequest(BaseModel):
 
 class SearchRequest(BaseModel):
     images_name: str
-    event_sub_id: int
 rabbit_conn = None
 image_channel = None
 face_search_channel = None
