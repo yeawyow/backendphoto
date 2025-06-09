@@ -102,13 +102,20 @@ async def process_image_api(request: ImageRequest):
         if conn and conn.is_connected():
             conn.close()
 
-@app.post("/face-search")
+# @app.post("/face-search")
+# async def face_search(req: SearchRequest):
+#     await send_to_rabbitmq({
+#         "images_name": req.images_name,
+#         "event_sub_id": req.event_sub_id
+#     }, queue_name="face_search_tasks")
+#     return JSONResponse(content={
+#         "status": "queued",
+#         "images_name": req.images_name
+#     })
+    @router.post("/face-search")
 async def face_search(req: SearchRequest):
-    await send_to_rabbitmq({
-        "images_name": req.images_name,
-        "event_sub_id": req.event_sub_id
-    }, queue_name="face_search_tasks")
+    result = perform_face_search(req.images_name, req.event_sub_id)
     return JSONResponse(content={
-        "status": "queued",
-        "images_name": req.images_name
+        "status": "completed",
+        "result": result
     })
