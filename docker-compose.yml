@@ -20,6 +20,10 @@ services:
     build: .
     ports:
       - "8000:8000"
+     deploy: null # ปิด deploy section (ป้องกัน error)
+    # กำหนด resource limit แบบ runtime
+    cpus: "1.0"
+    mem_limit: 2g
     volumes:
       - ./app:/app
       - ./images:/images
