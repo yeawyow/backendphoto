@@ -9,33 +9,31 @@ IMAGES_FOLDER = "/app/images_search"
 
 # โหลดโมเดล InsightFace
 model = insightface.app.FaceAnalysis(name="buffalo_l")
-model.prepare(ctx_id=-1)
+model.prepare(ctx_id=-1)  # -1 หมายถึงใช้ CPU (0 ใช้ GPU ถ้ามี)
 
-# ---------- Cosine similarity ----------
+# คำนวณ Cosine similarity
 def cosine_similarity(a, b):
     a = np.array(a)
     b = np.array(b)
-    norm_a = np.linalg.norm(a)
-    norm_b = np.linalg.norm(b)
-    if norm_a == 0 or norm_b == 0:
+    if np.linalg.norm(a) == 0 or np.linalg.norm(b) == 0:
         return 0
-    return np.dot(a, b) / (norm_a * norm_b)
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-# ---------- อ่านภาพและสกัด embedding ----------
-def get_embedding(image_path: str):
+# ดึง embedding จากภาพ
+def get_embedding(image_path):
     img = cv2.imread(image_path)
     if img is None:
-        print(f"❌ ไม่พบภาพ: {image_path}")
+        print(f"❌ ไม่พบไฟล์ภาพ: {image_path}")
         return None
-
     faces = model.get(img)
     if len(faces) == 0:
-        print(f"😐 ไม่พบใบหน้าในภาพ: {image_path}")
+        print(f"❌ ไม่พบใบหน้าในภาพ: {image_path}")
         return None
+    # สมมติว่าใช้ใบหน้าแรก (index 0)
+    face = faces[0]
+    return face.embedding.tolist()
 
-    return faces[0].embedding.tolist()
-
-# ---------- ค้นหาใบหน้าที่คล้ายที่สุด ----------
+# ค้นหาภาพที่มีใบหน้าคล้ายกันในฐานข้อมูล
 def find_most_similar_faces(embedding):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -63,18 +61,20 @@ def find_most_similar_faces(embedding):
         except Exception as e:
             print(f"⚠️ Error comparing embedding: {e}")
 
-    # เรียงจาก similarity มาก -> น้อย
+    # เรียงจาก similarity มากไปน้อย (ไม่ตัดทิ้ง)
     scored_results.sort(key=lambda x: x["similarity"], reverse=True)
     return scored_results
 
-# ---------- 🔁 สำหรับ API เรียกใช้ ----------
+# ฟังก์ชันหลักสำหรับ API / ใช้งานทั่วไป
 def perform_face_search(images_name: str):
     image_path = os.path.join(IMAGES_FOLDER, images_name)
 
     if not os.path.isfile(image_path):
         return {
             "images_name": images_name,
-            "detect_images": False
+            "detect_images": False,
+            "face_found": False,
+            "matches": []
         }
 
     embedding = get_embedding(image_path)
@@ -82,7 +82,8 @@ def perform_face_search(images_name: str):
         return {
             "images_name": images_name,
             "detect_images": True,
-            "face_found": False
+            "face_found": False,
+            "matches": []
         }
 
     matches = find_most_similar_faces(embedding)
@@ -90,5 +91,11 @@ def perform_face_search(images_name: str):
         "images_name": images_name,
         "detect_images": True,
         "face_found": True,
-        "matches": matches  # <-- ทั้งหมด ไม่จำกัด 10
+        "matches": matches
     }
+
+# สำหรับทดสอบแบบ run ด้วยตัวเอง
+if __name__ == "__main__":
+    test_image = "test.jpg"  # เปลี่ยนชื่อภาพตามที่ต้องการ
+    result = perform_face_search(test_image)
+    print(json.dumps(result, indent=2, ensure_ascii=False))
