@@ -114,7 +114,7 @@ async def process_image_api(request: ImageRequest):
 #     })
     @router.post("/face-search")
 async def face_search(req: SearchRequest):
-    result = perform_face_search(req.images_name, req.event_sub_id)
+    result = perform_face_search(req.images_name)
     return JSONResponse(content={
         "status": "completed",
         "result": result
