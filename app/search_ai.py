@@ -63,23 +63,23 @@ def perform_face_search(image_path: str):
     print(f"testpath :{image_path}")
     if not os.path.isfile(image_path):
         return {
-            # "detect_images": False,
-            # "face_found": False,
+            "detect_images": False,
+            "face_found": False,
             "matches": []
         }
 
     embedding = get_embedding(image_path)
     if embedding is None:
         return {
-            # "detect_images": True,
-            # "face_found": False,
+            "detect_images": True,
+            "face_found": False,
             "matches": []
         }
 
     matches = find_most_similar_faces(embedding)
     return {
-        # "detect_images": True,
-        # "face_found": True,
+        "detect_images": True,
+        "face_found": True,
         "matches": matches
     }
 # def perform_face_search(image_path: str):
