@@ -28,14 +28,22 @@ def get_embedding(image_path):
     face = faces[0]
     return face.embedding.tolist()
 
-def find_most_similar_faces(embedding):
+def find_most_similar_faces(embedding, event_sub_id=None):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("""
-        SELECT fe.embedding, i.images_name,i.images_preview_name,fe.images_id
+
+    base_query = """
+        SELECT fe.embedding, i.images_name, i.images_preview_name, fe.images_id
         FROM face_embeddings fe
         JOIN images i ON fe.images_id = i.images_id
-    """)
+    """
+
+    params = []
+    if event_sub_id:  # ถ้า event_sub_id มีค่า (ไม่ว่าง)
+        base_query += " WHERE fe.event_sub_id = %s"
+        params.append(event_sub_id)
+
+    cursor.execute(base_query, params)
     results = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -58,7 +66,38 @@ def find_most_similar_faces(embedding):
     scored_results.sort(key=lambda x: x["similarity"], reverse=True)
     return scored_results
 
-def perform_face_search(image_path: str):
+# def find_most_similar_faces(embedding,event_sub_id):
+    
+#     conn = get_db_connection()
+#     cursor = conn.cursor(dictionary=True)
+#     cursor.execute("""
+#         SELECT fe.embedding, i.images_name,i.images_preview_name,fe.images_id
+#         FROM face_embeddings fe
+#         JOIN images i ON fe.images_id = i.images_id
+#     """)
+#     results = cursor.fetchall()
+#     cursor.close()
+#     conn.close()
+
+#     scored_results = []
+#     for row in results:
+#         try:
+#             db_embedding = json.loads(row["embedding"])
+#             score = cosine_similarity(embedding, db_embedding)
+#             if score >= THRESHOLD:
+#                 scored_results.append({
+#                     "matched_images_name": row["images_name"],
+#                     "matched_images_id": row["images_id"],
+#                     "images_preview_name": row["images_preview_name"],
+#                     "similarity": round(score, 4)
+#                 })
+#         except Exception as e:
+#             print(f"⚠️ Error comparing embedding: {e}")
+
+#     scored_results.sort(key=lambda x: x["similarity"], reverse=True)
+#     return scored_results
+
+def perform_face_search(image_path: str,events_sub_id: int):
     image_path = IMAGES_FOLDER + "/" + image_path
     print(f"testpath :{image_path}")
     if not os.path.isfile(image_path):
@@ -76,7 +115,7 @@ def perform_face_search(image_path: str):
             "matches": []
         }
 
-    matches = find_most_similar_faces(embedding)
+    matches = find_most_similar_faces(embedding,events_sub_id)
     return {
         "detect_images": True,
         "face_found": True,

@@ -117,7 +117,7 @@ async def process_image_api(request: ImageRequest):
 async def face_search(req: SearchRequest):
     try:
         print(req.images_name,req.events_sub_id)
-        result = await asyncio.to_thread(perform_face_search, req.images_name)
+        result = await asyncio.to_thread(perform_face_search, req.images_name,req.events_sub_id)
         print("testt",result)
 
         if not result["detect_images"]:
