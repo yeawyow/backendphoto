@@ -1,10 +1,4 @@
 import os
-# ตั้งค่าก่อน import insightface เพื่อลดการใช้ CPU
-os.environ['OMP_NUM_THREADS'] = '1'
-os.environ['OPENBLAS_NUM_THREADS'] = '1'
-os.environ['MKL_NUM_THREADS'] = '1'
-os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
-os.environ['NUMEXPR_NUM_THREADS'] = '1'
 import aio_pika
 import asyncio
 import json
