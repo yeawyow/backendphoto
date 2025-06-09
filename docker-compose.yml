@@ -15,6 +15,7 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - app-network
+    restart: always       # เพิ่มตรงนี้
 
   ai-server:
     build: .
@@ -24,11 +25,10 @@ services:
       - ./app:/app
       - ./images:/images
       - /var/www/html/officedd/officedd_photo/search_image/search_image_path:/app/images_search
-
     depends_on:
       rabbitmq:
         condition: service_healthy
-    restart: on-failure
+    restart: always       # เปลี่ยนจาก on-failure เป็น always หรือจะใช้ on-failure ก็ได้
     command: uvicorn main:app --host 0.0.0.0 --reload
     networks:
       - app-network
@@ -43,7 +43,7 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    restart: on-failure
+    restart: always       # เพิ่มตรงนี้
     command: python worker.py
     networks:
       - app-network
@@ -57,7 +57,7 @@ services:
   #   depends_on:
   #     rabbitmq:
   #       condition: service_healthy
-  #   restart: on-failure
+  #   restart: always       # เพิ่มตรงนี้ (ถ้าเปิดใช้)
   #   command: python search_ai.py
   #   networks:
   #     - app-network
