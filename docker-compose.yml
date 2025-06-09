@@ -39,7 +39,7 @@ services:
       - ./app:/app
       # - ./images:/images
       - /var/www/html/officedd/officedd_photo/images/images_name:/images
-      - /var/www/html/officedd/officedd_photo/images/search_images:/app/images_search
+      - /var/www/html/officedd/officedd_photo/search_image/search_image_path:/app/images_search
     depends_on:
       rabbitmq:
         condition: service_healthy
