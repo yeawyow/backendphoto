@@ -128,7 +128,7 @@ async def face_search(req: SearchRequest):
                 "result": result
             })
         return JSONResponse(content={
-            "status": "completed",
+            # "status": "completed",
             "result": result
         })
     except Exception as e:
