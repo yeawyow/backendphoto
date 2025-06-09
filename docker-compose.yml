@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network
+
+  ai-server:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+      - ./images:/images
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+    command: uvicorn main:app --host 0.0.0.0 --reload
+    networks:
+      - app-network
+
+  worker:
+    build: .
+    volumes:
+      - ./app:/app
+      - ./images:/images
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+    command: python worker.py
+    networks:
+      - app-network
+
+  search_worker:
+    build: .
+    volumes:
+      - ./app:/app
+      - ./images_search:/app/images_search
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+    command: python search_worker.py
+    networks:
+      - app-network
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  app-network:

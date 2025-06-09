@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pydantic
+aio-pika
+mysql-connector-python
+insightface
+opencv-python-headless
+numpy
+onnxruntime
+python-dotenv
+faiss-cpu
