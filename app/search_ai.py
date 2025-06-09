@@ -31,7 +31,7 @@ def find_most_similar_faces(embedding):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
-        SELECT fe.embedding, i.images_name, fe.images_id
+        SELECT fe.embedding, i.images_name,i.images_preview_name, fe.images_id
         FROM face_embeddings fe
         JOIN images i ON fe.images_id = i.images_id
     """)
