@@ -7,17 +7,35 @@ from database import get_db_connection
 
 IMAGES_FOLDER = "/app/images_search"
 
+# โหลดโมเดล InsightFace
 model = insightface.app.FaceAnalysis(name="buffalo_l")
 model.prepare(ctx_id=-1)
-
 
 # ---------- Cosine similarity ----------
 def cosine_similarity(a, b):
     a = np.array(a)
     b = np.array(b)
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+    norm_a = np.linalg.norm(a)
+    norm_b = np.linalg.norm(b)
+    if norm_a == 0 or norm_b == 0:
+        return 0
+    return np.dot(a, b) / (norm_a * norm_b)
 
-# ---------- Search most similar face ----------
+# ---------- อ่านภาพและสกัด embedding ----------
+def get_embedding(image_path: str):
+    img = cv2.imread(image_path)
+    if img is None:
+        print(f"❌ ไม่พบภาพ: {image_path}")
+        return None
+
+    faces = model.get(img)
+    if len(faces) == 0:
+        print(f"😐 ไม่พบใบหน้าในภาพ: {image_path}")
+        return None
+
+    return faces[0].embedding.tolist()
+
+# ---------- ค้นหาใบหน้าที่คล้ายที่สุด ----------
 def find_most_similar_faces(embedding):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -45,13 +63,13 @@ def find_most_similar_faces(embedding):
         except Exception as e:
             print(f"⚠️ Error comparing embedding: {e}")
 
-    # เรียงจาก similarity มากไปน้อย (ไม่ตัดทิ้ง)
+    # เรียงจาก similarity มาก -> น้อย
     scored_results.sort(key=lambda x: x["similarity"], reverse=True)
     return scored_results
 
-# ---------- 🔁 NEW: Function for direct API usage ----------
+# ---------- 🔁 สำหรับ API เรียกใช้ ----------
 def perform_face_search(images_name: str):
-    image_path = os.path.join("/app/images_search", images_name)
+    image_path = os.path.join(IMAGES_FOLDER, images_name)
 
     if not os.path.isfile(image_path):
         return {
@@ -72,6 +90,5 @@ def perform_face_search(images_name: str):
         "images_name": images_name,
         "detect_images": True,
         "face_found": True,
-        # "embedding": embedding,
-        "matches": matches
+        "matches": matches  # <-- ทั้งหมด ไม่จำกัด 10
     }
