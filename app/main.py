@@ -117,7 +117,7 @@ async def face_search(req: SearchRequest):
     try:
         print(req.images_name)
         result = await asyncio.to_thread(perform_face_search, req.images_name)
-        print("testt")
+        print("testt",result)
 
         if not result["detect_images"]:
             raise HTTPException(status_code=404, detail="Image file not found on server")
