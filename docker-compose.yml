@@ -23,7 +23,7 @@ services:
     volumes:
       - ./app:/app
       - ./images:/images
-      - /var/www/html/officedd/officedd_photo/images/search_images:/app/images_search
+      - /var/www/html/officedd/officedd_photo/search_images/search_images_path:/app/images_search
 
     depends_on:
       rabbitmq:
