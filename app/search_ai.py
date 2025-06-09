@@ -18,15 +18,15 @@ def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 # ---------- Search most similar face ----------
-def find_most_similar_face(embedding, event_sub_id):
+def find_most_similar_face(embedding):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
         SELECT fe.embedding, i.images_name, fe.images_id
         FROM face_embeddings fe
         JOIN images i ON fe.images_id = i.images_id
-        WHERE i.events_sub_id = %s
-    """, (event_sub_id,))
+        
+    """)
     
     results = cursor.fetchall()
     cursor.close()
@@ -64,7 +64,7 @@ def get_embedding(image_path: str):
 
 
 # ---------- 🔁 NEW: Function for direct API usage ----------
-def perform_face_search(images_name: str, event_sub_id: int) -> dict:
+def perform_face_search(images_name: str) -> dict:
     image_path = os.path.join(IMAGES_FOLDER, images_name)
     print(f"🔍 Looking for image at: {image_path}")
 
@@ -72,7 +72,6 @@ def perform_face_search(images_name: str, event_sub_id: int) -> dict:
         print(f"❌ Image not found: {images_name}")
         return {
             "images_name": images_name,
-            "event_sub_id": event_sub_id,
             "detect_images": False
         }
 
@@ -81,13 +80,12 @@ def perform_face_search(images_name: str, event_sub_id: int) -> dict:
         print("⚠️ No face detected in image")
         return {
             "images_name": images_name,
-            "event_sub_id": event_sub_id,
             "detect_images": True,
             "face_found": False
         }
 
     print("✅ Face detected, embedding created")
-    match = find_most_similar_face(embedding, event_sub_id)
+    match = find_most_similar_face(embedding)
     if match:
         print(f"🔁 Match found: {match}")
     else:
@@ -95,7 +93,6 @@ def perform_face_search(images_name: str, event_sub_id: int) -> dict:
 
     return {
         "images_name": images_name,
-        "event_sub_id": event_sub_id,
         "detect_images": True,
         "face_found": True,
         "embedding": embedding,
