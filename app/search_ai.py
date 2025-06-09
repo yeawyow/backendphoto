@@ -29,8 +29,7 @@ def get_embedding(image_path):
     if len(faces) == 0:
         print(f"❌ ไม่พบใบหน้าในภาพ: {image_path}")
         return None
-    # สมมติว่าใช้ใบหน้าแรก (index 0)
-    face = faces[0]
+    face = faces[0]  # ใช้ใบหน้าแรก
     return face.embedding.tolist()
 
 # ค้นหาภาพที่มีใบหน้าคล้ายกันในฐานข้อมูล
@@ -61,7 +60,6 @@ def find_most_similar_faces(embedding):
         except Exception as e:
             print(f"⚠️ Error comparing embedding: {e}")
 
-    # เรียงจาก similarity มากไปน้อย (ไม่ตัดทิ้ง)
     scored_results.sort(key=lambda x: x["similarity"], reverse=True)
     return scored_results
 
