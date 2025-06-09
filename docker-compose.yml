@@ -23,6 +23,8 @@ services:
     volumes:
       - ./app:/app
       - ./images:/images
+      - /var/www/html/officedd/officedd_photo/images/search_images:/app/images_search
+
     depends_on:
       rabbitmq:
         condition: service_healthy
