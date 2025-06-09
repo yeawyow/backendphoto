@@ -55,7 +55,7 @@ services:
       rabbitmq:
         condition: service_healthy
     restart: on-failure
-    command: python search_worker.py
+    command: python search_ai.py
     networks:
       - app-network
 
