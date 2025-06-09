@@ -58,27 +58,38 @@ def find_most_similar_faces(embedding):
     scored_results.sort(key=lambda x: x["similarity"], reverse=True)
     return scored_results
 
+# def perform_face_search(image_path: str):
+#     image_path = IMAGES_FOLDER + "/" + image_path
+#     print(f"testpath :{image_path}")
+#     if not os.path.isfile(image_path):
+#         return {
+#             "detect_images": False,
+#             "face_found": False,
+#             "matches": []
+#         }
+
+#     embedding = get_embedding(image_path)
+#     if embedding is None:
+#         return {
+#             "detect_images": True,
+#             "face_found": False,
+#             "matches": []
+#         }
+
+#     matches = find_most_similar_faces(embedding)
+#     return {
+#         "detect_images": True,
+#         "face_found": True,
+#         "matches": matches
+#     }
 def perform_face_search(image_path: str):
-    image_path = IMAGES_FOLDER + "/" + image_path
-    print(f"testpath :{image_path}")
+    image_path = os.path.join(IMAGES_FOLDER, image_path)
     if not os.path.isfile(image_path):
-        return {
-            "detect_images": False,
-            "face_found": False,
-            "matches": []
-        }
+        return []
 
     embedding = get_embedding(image_path)
     if embedding is None:
-        return {
-            "detect_images": True,
-            "face_found": False,
-            "matches": []
-        }
+        return []
 
     matches = find_most_similar_faces(embedding)
-    return {
-        "detect_images": True,
-        "face_found": True,
-        "matches": matches
-    }
+    return matches
