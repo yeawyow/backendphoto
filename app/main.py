@@ -118,4 +118,3 @@ async def face_search(req: SearchRequest):
         "status": "completed",
         "result": result
     })
-
