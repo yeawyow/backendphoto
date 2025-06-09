@@ -14,6 +14,7 @@ face_search_channel = None
 
 class ImageRequest(BaseModel):
     filename: str
+    events_sub_id: int
 
 class SearchRequest(BaseModel):
     images_name: str
