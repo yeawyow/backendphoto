@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import json
 import aio_pika
+import asyncio
 from database import get_db_connection
 from search_ai import perform_face_search
 app = FastAPI()
@@ -113,7 +114,7 @@ async def process_image_api(request: ImageRequest):
 #     })
 @app.post("/face-search")
 async def face_search(req: SearchRequest):
-    result = perform_face_search(req.images_name)
+    result = await asyncio.to_thread(perform_face_search, req.images_name)
     return JSONResponse(content={
         "status": "completed",
         "result": result
