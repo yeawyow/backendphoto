@@ -57,6 +57,7 @@ def find_most_similar_faces(embedding):
 
 def perform_face_search(image_path: str):
     image_path = IMAGES_FOLDER + "/" + image_path
+    print(f"testpath :{image_path}")
     if not os.path.isfile(image_path):
         return {
             "detect_images": False,
