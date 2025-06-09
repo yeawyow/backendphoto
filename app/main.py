@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import json
 import aio_pika
 from database import get_db_connection
-
+from search_ai import perform_face_search
 app = FastAPI()
 
 rabbit_conn = None
