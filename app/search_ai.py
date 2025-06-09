@@ -72,6 +72,6 @@ def perform_face_search(images_name: str):
         "images_name": images_name,
         "detect_images": True,
         "face_found": True,
-        "embedding": embedding,
+        # "embedding": embedding,
         "matches": matches
     }
