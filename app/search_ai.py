@@ -119,6 +119,7 @@ def perform_face_search(image_path: str,events_sub_id: int):
     return {
         "detect_images": True,
         "face_found": True,
+        "embedding":embedding,
         "matches": matches
     }
 # def perform_face_search(image_path: str):
