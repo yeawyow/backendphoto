@@ -97,17 +97,18 @@ def find_most_similar_faces(embedding, event_sub_id=None):
 #     scored_results.sort(key=lambda x: x["similarity"], reverse=True)
 #     return scored_results
 
-def perform_face_search(image_path: str,events_sub_id: int):
-    image_path = IMAGES_FOLDER + "/" + image_path
-    print(f"testpath :{image_path}")
-    if not os.path.isfile(image_path):
+def perform_face_search(image_path: str, events_sub_id: int):
+    full_path = os.path.join(IMAGES_FOLDER, image_path)
+    print(f"testpath : {full_path}")
+
+    if not os.path.isfile(full_path):
         return {
             "detect_images": False,
             "face_found": False,
             "matches": []
         }
 
-    embedding = get_embedding(image_path)
+    embedding = get_embedding(full_path)
     if embedding is None:
         return {
             "detect_images": True,
@@ -115,13 +116,31 @@ def perform_face_search(image_path: str,events_sub_id: int):
             "matches": []
         }
 
-    matches = find_most_similar_faces(embedding,events_sub_id)
+    #  embed_search ในตาราง search_image
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        update_query = """
+            UPDATE search_image
+            SET embed_search = %s
+            WHERE search_image_name = %s
+        """
+        cursor.execute(update_query, (json.dumps(embedding), image_path))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️ Failed to update embed_search: {e}")
+
+    matches = find_most_similar_faces(embedding, events_sub_id)
     return {
         "detect_images": True,
         "face_found": True,
-        "embedding":embedding,
+        "embedding": embedding,
         "matches": matches
     }
+
 # def perform_face_search(image_path: str):
 #     image_path = os.path.join(IMAGES_FOLDER, image_path)
 #     if not os.path.isfile(image_path):
