@@ -40,7 +40,7 @@ def find_most_similar_faces(embedding, event_sub_id=None):
 
     params = []
     if event_sub_id:  # ถ้า event_sub_id มีค่า (ไม่ว่าง)
-        base_query += " WHERE fe.event_sub_id = %s"
+        base_query += " WHERE fe.events_sub_id = %s"
         params.append(event_sub_id)
 
     cursor.execute(base_query, params)
