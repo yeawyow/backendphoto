@@ -28,7 +28,7 @@ def get_embedding(image_path):
     face = faces[0]
     return face.embedding.tolist()
 
-def find_most_similar_faces(embedding, event_sub_id=None):
+def find_most_similar_faces(embedding, event_sub_id=0):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
