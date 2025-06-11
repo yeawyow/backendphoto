@@ -6,8 +6,8 @@ import numpy as np
 from database import get_db_connection
 
 IMAGES_FOLDER = "/app/images_search"
-THRESHOLD = 0.60
-
+# THRESHOLD = 0.60
+THRESHOLD = 0.4
 model = insightface.app.FaceAnalysis(name="buffalo_l")
 model.prepare(ctx_id=-1, det_size=(800, 800))
 
