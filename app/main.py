@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from typing import List
 import json
 import aio_pika
 import asyncio
@@ -14,7 +15,8 @@ face_search_channel = None
 
 class ImageRequest(BaseModel):
     filename: str
-
+class ImagesRequest(BaseModel):
+    filenames: List[str]
 class SearchRequest(BaseModel):
     images_name: str
     events_sub_id: int
@@ -133,3 +135,46 @@ async def face_search(req: SearchRequest):
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+@app.post("/process-all-images")
+async def process_all_images(request: ImagesRequest):
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        queued = []
+        not_found = []
+
+        for filename in request.filenames:
+            cursor.execute("""
+                SELECT images_id, images_name
+                FROM images
+                WHERE images_name = %s AND process_status_id = 1
+            """, (filename,))
+            image = cursor.fetchone()
+            if image:
+                await send_to_rabbitmq({
+                    "images_id": image["images_id"],
+                    "images_name": image["images_name"]
+                }, queue_name="image_tasks")
+                queued.append(image)
+            else:
+                not_found.append(filename)
+
+        return {
+            "status": "completed",
+            "queued_count": len(queued),
+            "not_found_count": len(not_found),
+            "queued": queued,
+            "not_found": not_found
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
