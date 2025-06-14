@@ -8,4 +8,4 @@ opencv-python-headless
 numpy
 onnxruntime
 python-dotenv
-faiss-cpu==1.8.0
+faiss-cpu
