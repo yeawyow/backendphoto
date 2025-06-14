@@ -10,7 +10,7 @@ IMAGES_FOLDER = "/app/images_search"
 # THRESHOLD = 0.60
 THRESHOLD = 0.4
 model = insightface.app.FaceAnalysis(name="buffalo_l")
-model.prepare(ctx_id=-1, det_size=(800, 800))
+model.prepare(ctx_id=-1, det_size=(480, 480))
 
 def cosine_similarity(a, b):
     a = np.array(a)
