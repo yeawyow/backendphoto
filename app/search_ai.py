@@ -76,10 +76,11 @@ def find_most_similar_faces(embedding, event_sub_id=0):
     faiss.normalize_L2(db_embeddings_np)
     faiss.normalize_L2(query_embedding)
 
-    index = faiss.IndexFlatIP(db_embeddings_np.shape[1])  # ใช้ Inner Product = cosine similarity
+      index = faiss.IndexFlatIP(db_embeddings_np.shape[1])  # cosine similarity
     index.add(db_embeddings_np)
 
-    k = 10  # จำนวนผลลัพธ์ที่ต้องการคืน
+    # ดึงทั้งหมด (k = จำนวน embedding ทั้งหมด)
+    k = db_embeddings_np.shape[0]
     D, I = index.search(query_embedding, k)
 
     results = []
