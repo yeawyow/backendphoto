@@ -7,7 +7,7 @@ import aio_pika
 import asyncio
 from database import get_db_connection
 from search_ai import perform_face_search
-from search_faiss import perform_face_search2
+
 app = FastAPI()
 
 rabbit_conn = None
@@ -136,45 +136,7 @@ async def face_search(req: SearchRequest):
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-from fastapi import HTTPException
-from fastapi.responses import JSONResponse
-import asyncio
-import logging
 
-logger = logging.getLogger("face_search")
-
-@app.post("/face-search2")
-async def face_search(req: SearchRequest):
-    try:
-        # ตรวจสอบชื่อไฟล์ว่างหรือไม่
-        if not req.images_name.strip():
-            raise HTTPException(status_code=400, detail="Image filename cannot be empty")
-
-        logger.info(f"🕵️‍♂️ Searching for face in: {req.images_name}, event_sub_id: {req.events_sub_id}")
-
-        # เรียกใช้ฟังก์ชันค้นหาใน thread แยก
-        result = await asyncio.to_thread(perform_face_search2, req.images_name, req.events_sub_id)
-
-        if not result["detect_images"]:
-            raise HTTPException(status_code=404, detail="Image file not found on server")
-
-        if not result["face_found"]:
-            logger.info(f"😕 No face found in {req.images_name}")
-            return JSONResponse(content={
-                "status": "no_face_found",
-                "result": result
-            })
-
-        logger.info(f"✅ Face search completed for {req.images_name} with {len(result['matches'])} match(es)")
-
-        return JSONResponse(content={
-            "status": "completed",
-            "result": result
-        })
-
-    except Exception as e:
-        logger.error(f"❌ Face search failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/process-all-images")
 async def process_all_images(request: ImagesRequest):
