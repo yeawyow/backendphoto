@@ -2,6 +2,7 @@ import os
 import json
 import cv2
 import insightface
+import faiss
 import numpy as np
 from database import get_db_connection
 
@@ -27,7 +28,6 @@ def get_embedding(image_path):
         return None
     face = faces[0]
     return face.embedding.tolist()
-
 def find_most_similar_faces(embedding, event_sub_id=0):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -37,9 +37,8 @@ def find_most_similar_faces(embedding, event_sub_id=0):
         FROM face_embeddings fe
         JOIN images i ON fe.images_id = i.images_id
     """
-
     params = []
-    if event_sub_id:  # ถ้า event_sub_id มีค่า (ไม่ว่าง)
+    if event_sub_id:
         base_query += " WHERE i.events_sub_id = %s"
         params.append(event_sub_id)
 
@@ -48,23 +47,89 @@ def find_most_similar_faces(embedding, event_sub_id=0):
     cursor.close()
     conn.close()
 
-    scored_results = []
+    if not results:
+        return []
+
+    # โหลด embeddings และ metadata
+    embeddings_list = []
+    metadata = []
     for row in results:
         try:
             db_embedding = json.loads(row["embedding"])
-            score = cosine_similarity(embedding, db_embedding)
-            if score >= THRESHOLD:
-                scored_results.append({
-                    "matched_images_name": row["images_name"],
-                    "matched_images_id": row["images_id"],
-                    "images_preview_name": row["images_preview_name"],
-                    "similarity": round(score, 4)
-                })
+            embeddings_list.append(db_embedding)
+            metadata.append({
+                "images_name": row["images_name"],
+                "images_id": row["images_id"],
+                "images_preview_name": row["images_preview_name"]
+            })
         except Exception as e:
-            print(f"⚠️ Error comparing embedding: {e}")
+            print(f"⚠️ Error loading embedding: {e}")
 
-    scored_results.sort(key=lambda x: x["similarity"], reverse=True)
-    return scored_results
+    if not embeddings_list:
+        return []
+
+    # เตรียมข้อมูลสำหรับ FAISS
+    db_embeddings_np = np.array(embeddings_list).astype("float32")
+    query_embedding = np.array(embedding).astype("float32").reshape(1, -1)
+
+    # Normalize เพื่อใช้ cosine similarity
+    faiss.normalize_L2(db_embeddings_np)
+    faiss.normalize_L2(query_embedding)
+
+    index = faiss.IndexFlatIP(db_embeddings_np.shape[1])  # ใช้ Inner Product = cosine similarity
+    index.add(db_embeddings_np)
+
+    k = 10  # จำนวนผลลัพธ์ที่ต้องการคืน
+    D, I = index.search(query_embedding, k)
+
+    results = []
+    for score, idx in zip(D[0], I[0]):
+        if score >= THRESHOLD:
+            results.append({
+                "matched_images_name": metadata[idx]["images_name"],
+                "matched_images_id": metadata[idx]["images_id"],
+                "images_preview_name": metadata[idx]["images_preview_name"],
+                "similarity": round(float(score), 4)
+            })
+
+    return results
+# เก่า def find_most_similar_faces(embedding, event_sub_id=0):
+#     conn = get_db_connection()
+#     cursor = conn.cursor(dictionary=True)
+
+#     base_query = """
+#         SELECT fe.embedding, i.images_name, i.images_preview_name, fe.images_id
+#         FROM face_embeddings fe
+#         JOIN images i ON fe.images_id = i.images_id
+#     """
+
+#     params = []
+#     if event_sub_id:  # ถ้า event_sub_id มีค่า (ไม่ว่าง)
+#         base_query += " WHERE i.events_sub_id = %s"
+#         params.append(event_sub_id)
+
+#     cursor.execute(base_query, params)
+#     results = cursor.fetchall()
+#     cursor.close()
+#     conn.close()
+
+#     scored_results = []
+#     for row in results:
+#         try:
+#             db_embedding = json.loads(row["embedding"])
+#             score = cosine_similarity(embedding, db_embedding)
+#             if score >= THRESHOLD:
+#                 scored_results.append({
+#                     "matched_images_name": row["images_name"],
+#                     "matched_images_id": row["images_id"],
+#                     "images_preview_name": row["images_preview_name"],
+#                     "similarity": round(score, 4)
+#                 })
+#         except Exception as e:
+#             print(f"⚠️ Error comparing embedding: {e}")
+
+#     scored_results.sort(key=lambda x: x["similarity"], reverse=True)
+#     return scored_results
 
 # def find_most_similar_faces(embedding,event_sub_id):
     
