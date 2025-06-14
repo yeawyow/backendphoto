@@ -18,6 +18,7 @@ def find_most_similar_faces(embedding, event_sub_id=0):
     if event_sub_id:
         base_query += " WHERE i.events_sub_id = %s"
         params.append(event_sub_id)
+    base_query += " ORDER BY i.exif_taken_datetime ASC"
 
     cursor.execute(base_query, params)
     results = cursor.fetchall()
