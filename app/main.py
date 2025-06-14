@@ -7,6 +7,7 @@ import aio_pika
 import asyncio
 from database import get_db_connection
 from search_ai import perform_face_search
+from search_faiss import perform_face_search
 app = FastAPI()
 
 rabbit_conn = None
