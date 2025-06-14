@@ -7,7 +7,7 @@ import aio_pika
 import asyncio
 from database import get_db_connection
 from search_ai import perform_face_search
-from search_faiss import perform_face_search
+from search_faiss import perform_face_search2
 app = FastAPI()
 
 rabbit_conn = None
@@ -153,7 +153,7 @@ async def face_search(req: SearchRequest):
         logger.info(f"🕵️‍♂️ Searching for face in: {req.images_name}, event_sub_id: {req.events_sub_id}")
 
         # เรียกใช้ฟังก์ชันค้นหาใน thread แยก
-        result = await asyncio.to_thread(perform_face_search, req.images_name, req.events_sub_id)
+        result = await asyncio.to_thread(perform_face_search2, req.images_name, req.events_sub_id)
 
         if not result["detect_images"]:
             raise HTTPException(status_code=404, detail="Image file not found on server")
