@@ -26,19 +26,27 @@ def get_embedding(image_path):
 
 
 @lru_cache(maxsize=10)
-def get_faiss_index_cached(event_sub_id: int):
-    print(f"⏳ Loading FAISS index for event_sub_id: {event_sub_id}")
-    
+def get_faiss_index_cached(event_sub_id: int = None, event_id: int = None):
+    if event_sub_id:
+        print(f"⏳ Loading FAISS index for event_sub_id: {event_sub_id}")
+    elif event_id:
+        print(f"⏳ Loading FAISS index for event_id: {event_id}")
+    else:
+        print("⚠️ Must provide either event_sub_id or event_id")
+        return None, []
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     query = """
-        SELECT fe.embedding, i.images_name, i.images_preview_name, fe.images_id
+         SELECT i.events_sub_id,evs.events_id,fe.embedding, i.images_name, i.images_preview_name, fe.images_id
         FROM face_embeddings fe
         JOIN images i ON fe.images_id = i.images_id
-        WHERE i.events_sub_id = %s
-    """
-    cursor.execute(query, (event_sub_id,))
+		JOIN events_sub evs ON evs.events_sub_id=i.events_sub_id
+        WHERE {}
+    """.format("i.events_sub_id = %s" if event_sub_id else "evs.events_id = %s")
+
+    cursor.execute(query, (event_sub_id or event_id,))
     rows = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -69,14 +77,12 @@ def get_faiss_index_cached(event_sub_id: int):
 
     return index, metadata
 
-
 def invalidate_faiss_cache(event_sub_id: int):
     get_faiss_index_cached.cache_clear()
     print(f"🧹 Cleared FAISS cache (all entries). Reload on next use.")
 
-
-def find_most_similar_faces(embedding, event_sub_id: int):
-    index, metadata = get_faiss_index_cached(event_sub_id)
+def find_most_similar_faces(embedding, event_sub_id: int = None, event_id: int = None):
+    index, metadata = get_faiss_index_cached(event_sub_id=event_sub_id, event_id=event_id)
     if index is None:
         return []
 
@@ -98,7 +104,7 @@ def find_most_similar_faces(embedding, event_sub_id: int):
     return results
 
 
-def perform_face_search(image_path: str, events_sub_id: int):
+def perform_face_search(image_path: str, event_sub_id: int = None, event_id: int = None):
     full_path = os.path.join(IMAGES_FOLDER, image_path)
     print(f"🔍 Searching face for image: {full_path}")
 
@@ -133,8 +139,11 @@ def perform_face_search(image_path: str, events_sub_id: int):
     except Exception as e:
         print(f"⚠️ Failed to update embed_search: {e}")
 
-    matches = find_most_similar_faces(embedding, events_sub_id)
-    return {
+ matches = find_most_similar_faces(
+        embedding,
+        event_sub_id=event_sub_id,
+        event_id=event_id
+    )    return {
         "detect_images": True,
         "face_found": True,
         "embedding": embedding,
