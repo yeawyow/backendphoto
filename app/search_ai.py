@@ -139,11 +139,12 @@ def perform_face_search(image_path: str, event_sub_id: int = None, event_id: int
     except Exception as e:
         print(f"⚠️ Failed to update embed_search: {e}")
 
- matches = find_most_similar_faces(
+    matches = find_most_similar_faces(
         embedding,
         event_sub_id=event_sub_id,
         event_id=event_id
-    )    return {
+    )  
+    return {
         "detect_images": True,
         "face_found": True,
         "embedding": embedding,
