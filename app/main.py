@@ -20,7 +20,8 @@ class ImagesRequest(BaseModel):
     filenames: List[str]
 class SearchRequest(BaseModel):
     images_name: str
-    events_sub_id: int
+   events_sub_id: int = None
+   events_id: int = None
 rabbit_conn = None
 image_channel = None
 face_search_channel = None
