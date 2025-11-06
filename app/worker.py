@@ -7,7 +7,7 @@ import insightface
 from database import get_db_connection
 
 model = insightface.app.FaceAnalysis(name="buffalo_l")  # รุ่นใหญ่ (large)
-model.prepare(ctx_id=-1, det_size=(800, 800))  # กำหนดขนาดภาพสำหรับ detector ให้ใหญ่ขึ้น
+model.prepare(ctx_id=-1, det_size=(640, 640))  # กำหนดขนาดภาพสำหรับ detector ให้ใหญ่ขึ้น
 model.threshold = 0.4 
 def process_image(image_path: str):
     img = cv2.imread(image_path)
