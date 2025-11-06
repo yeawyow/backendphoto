@@ -48,19 +48,6 @@ services:
     networks:
       - app-network
 
-  # search_worker:
-  #   build: .
-  #   volumes:
-  #     - ./app:/app
-  #     # - ./images_search:/app/images_search
-  #     - /var/www/html/officedd/officedd_photo/images/search_images:/app/images_search
-  #   depends_on:
-  #     rabbitmq:
-  #       condition: service_healthy
-  #   restart: always       # เพิ่มตรงนี้ (ถ้าเปิดใช้)
-  #   command: python search_ai.py
-  #   networks:
-  #     - app-network
 
 volumes:
   rabbitmq_data:
